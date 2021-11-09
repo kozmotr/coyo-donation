@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      username: root
+      password: secret
+      database: donation
+      host: localhost
+      port: 27090
+      authentication-database: admin
+  application:
+    name: DONATION-SERVICE
+  config:
+    import: "optional:configserver:"
