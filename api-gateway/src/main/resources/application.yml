@@ -15,6 +15,10 @@ spring:
           uri: lb://DONATION-SERVICE
           predicates:
             - Path=/api/**
+        - id: MAIL-SERVICE
+          uri: lb://MAIL-SERVICE
+          predicates:
+            - Path=/mail/**
 
 server:
   port: 8083

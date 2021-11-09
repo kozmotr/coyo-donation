@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: MAIL-SERVICE
+  config:
+    import: "optional:configserver:"
+server:
+  port: 8084
