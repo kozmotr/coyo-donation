@@ -5,6 +5,17 @@ spring:
     config:
       import-check:
         enabled: false
+    gateway:
+      routes:
+        - id: PAYPAL-SERVICE
+          uri: lb://PAYPAL-SERVICE
+          predicates:
+            - Path=/paypal/**
+        - id: DONATION-SERVICE
+          uri: lb://DONATION-SERVICE
+          predicates:
+            - Path=/api/**
+
 eureka:
   client:
     register-with-eureka: true
