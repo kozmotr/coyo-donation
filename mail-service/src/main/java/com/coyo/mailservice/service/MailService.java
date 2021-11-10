@@ -61,6 +61,13 @@ public class MailService {
         send("mail/newdonations", Locale.getDefault(), args, defaultCatchAllRecipient, MAIL_SUBJECT_NEW_DONATIONS);
     }
 
+    public void send(MimeMessage msg) {
+        try {
+            mailSender.send(msg);
+        } catch (Exception ex){
+            log.error("Exception occured during sending mail {}" , ex.getMessage());
+        }
+    }
 
     @Queue(importance = Importance.IMPORTANT)
     public void send(String templateName, Locale locale, Map<String, Object> args, String to, String subject) {

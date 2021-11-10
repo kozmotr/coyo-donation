@@ -2,21 +2,36 @@ package com.coyoapp.donations.mail;
 
 import com.coyoapp.donations.aop.TrackMe;
 import com.coyoapp.donations.invitation.InvitationToken;
+
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+
+import io.netty.handler.codec.Headers;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Sends mails to owners.
@@ -35,6 +50,7 @@ public class MailService {
 
     private final MailTemplateGenerator mailTemplateGenerator;
     private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate;
 
     @Async
     @TrackMe
@@ -58,7 +74,9 @@ public class MailService {
     }
 
 
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     @Async
+    @SneakyThrows
     public void send(String templateName, Locale locale, Map<String, Object> args, String to, String subject) {
         String htmlContent = mailTemplateGenerator.createTemplate(templateName, locale, args);
         try {
@@ -70,7 +88,17 @@ public class MailService {
             helper.setSubject(subject);
             MimeMessage mimeMessage = helper.getMimeMessage();
             logMessage(mimeMessage);
-            mailSender.send(mimeMessage);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            mimeMessage.writeTo(bos);
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+
+            HttpEntity<Object> entity = new HttpEntity<>(bos.toByteArray(), headers);
+
+
+            executorService.submit(()->restTemplate.postForLocation("http://MAIL-SERVICE/mail/send", entity));
         } catch (MessagingException e) {
             throw new MailSendException("Error creating/sending email message " + to + ", " + subject, e);
         }
