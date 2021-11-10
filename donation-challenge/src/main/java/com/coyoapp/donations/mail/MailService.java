@@ -53,19 +53,18 @@ public class MailService {
     private final RestTemplate restTemplate;
 
     @Async
-    @TrackMe
     public void sendInvitationTokenMail(InvitationToken invitationToken) {
         final Map<String, Object> args = new HashMap<>();
         args.put("activationCode", invitationToken.getToken());
         send("mail/invitationtoken", Locale.getDefault(), args, defaultCatchAllRecipient, MAIL_SUBJECT_INVITATION_CODE);
     }
-
+    @Async
     public void sendSignupConfirmationMail() {
         final Map<String, Object> args = new HashMap<>();
         send("mail/signupconfirmation", Locale.getDefault(), args, defaultCatchAllRecipient,
                 MAIL_SUBJECT_SIGN_UP_CONFIRMATION);
     }
-
+    @Async
     public void sendNewDonationsMail() {
         final Map<String, Object> args = new HashMap<>();
         args.put("amount", "109.81");
@@ -75,7 +74,6 @@ public class MailService {
 
 
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    @Async
     @SneakyThrows
     public void send(String templateName, Locale locale, Map<String, Object> args, String to, String subject) {
         String htmlContent = mailTemplateGenerator.createTemplate(templateName, locale, args);
@@ -91,13 +89,9 @@ public class MailService {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             mimeMessage.writeTo(bos);
             HttpHeaders headers = new HttpHeaders();
-
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-
             HttpEntity<Object> entity = new HttpEntity<>(bos.toByteArray(), headers);
-
-
             executorService.submit(()->restTemplate.postForLocation("http://MAIL-SERVICE/mail/send", entity));
         } catch (MessagingException e) {
             throw new MailSendException("Error creating/sending email message " + to + ", " + subject, e);
