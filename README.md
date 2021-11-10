@@ -1,3 +1,11 @@
+donation-challange repo is forked from coyoapp/donation-challenge
+I've added some features to it and fixed a few things. Other than that
+the other services are implemented from strach.
+This repo is demonstration of micro-service arthitecture 
+and spring boot .
+
+Okey, lets jump in what i have done in 2 days for this forked repo.:
+
 The donation monolithic structure is refactored
 and it re arthitectured as micro-service.
 We have service-registry service for service
